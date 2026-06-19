@@ -3,16 +3,21 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather, AntDesign } from '@expo/vector-icons';
 import { TaskItem as TaskType } from '../utils/handle-api';
 
-// TODO (Zustand): Mantenha apenas a prop 'task'. Remova 'updateMode' e 'deleteTask'
+// TODO (Zustand): Importe o useTaskStore aqui quando criar sua store
+// import { useTaskStore } from '../stores/useTaskStore';
+
+// TODO (Zustand): Mantida apenas a prop 'task' e 'updateMode' (se a modal de edição abrir pelo App.tsx)
 interface TaskItemProps {
   task: TaskType;
   updateMode: () => void;
-  deleteTask: () => void;
+  deleteTask: () => void; // Mantemos esta assinatura recebida pelo interceptador do AlertDialog do TaskList
 }
 
-// TODO (Zustand): Importe o useTaskStore e pegue as actions de atualizar e deletar diretamente da store
 const TaskItem: React.FC<TaskItemProps> = ({ task, updateMode, deleteTask }) => {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0));
+
+  // TODO (Zustand): Quando a store estiver pronta, você pegará as ações diretamente aqui:
+  // const toggleTask = useTaskStore((state) => state.toggleTask); // Exemplo de marcar concluída
 
   return (
     <View style={styles.task}>
@@ -30,6 +35,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, updateMode, deleteTask }) => 
         <TouchableOpacity onPress={updateMode} accessibilityRole="button">
           <Feather name="edit" size={20} color="#fff" style={styles.icon} />
         </TouchableOpacity>
+        
+        {/* Este botão agora dispara com segurança o AlertDialog gerenciado pelo pai (TaskList) */}
         <TouchableOpacity onPress={deleteTask} accessibilityRole="button">
           <AntDesign name="delete" size={20} color="#fff" style={styles.icon} />
         </TouchableOpacity>

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { SectionList, StyleSheet, View, Text } from 'react-native';
 import TaskItem from './TaskItem';
 import { TaskItem as TaskType } from '../utils/handle-api';
+import EmptyState from './EmptyState';
 
 // TODO (Zustand): Remova as props tasks, onUpdate e onDelete daqui, elas não serão mais necessárias
 interface TaskListProps {
@@ -25,10 +26,11 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onUpdate, onDelete }) => {
   return (
     <View style={styles.listContainer}>
       <SectionList
-        sections={sections}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.listContent}
-        renderSectionHeader={({ section: { title } }) => (
+  sections={sections}
+  keyExtractor={(item) => item._id}
+  contentContainerStyle={styles.listContent}
+  ListEmptyComponent={<EmptyState />}
+  renderSectionHeader={({ section: { title } }) => (
           <Text style={styles.sectionHeader}>{title}</Text>
         )}
         renderItem={({ item }) => (

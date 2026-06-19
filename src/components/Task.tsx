@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather, AntDesign } from '@expo/vector-icons';
 
 interface TaskProps {
@@ -10,44 +10,30 @@ interface TaskProps {
 
 const Task: React.FC<TaskProps> = ({ text, updateMode, deleteTask }) => {
   return (
-    <View style={styles.todo}>
-      <Text style={styles.text}>{text}</Text>
-      <View style={styles.icons}>
+    // REQUISITOS: Fundo branco (bg-white), bordas arredondadas (rounded-md), 
+    // leve sombra (shadow-sm), padding (py-6 px-8), flex-row e justify-between.
+    <View className="flex-row items-center justify-between bg-white py-6 px-8 rounded-md mt-4 shadow-sm border border-gray-100">
+      
+      {/* Texto com flex-1 para não empurrar os ícones para fora da tela */}
+      <Text className="text-gray-800 text-base flex-1 font-medium">
+        {text}
+      </Text>
+      
+      {/* Container dos ícones alinhados em linha */}
+      <View className="flex-row gap-4 ml-4">
         <TouchableOpacity onPress={updateMode}>
-          <Feather name="edit" size={20} color="#fff" style={styles.icon} />
+          {/* Alterado color para #333 para dar contraste no fundo branco */}
+          <Feather name="edit" size={20} color="#333" className="p-[2px]" />
         </TouchableOpacity>
         <TouchableOpacity onPress={deleteTask}>
-          <AntDesign name="delete" size={20} color="#fff" style={styles.icon} />
+          {/* Alterado color para #ef4444 (vermelho do Tailwind) para o botão deletar destacar */}
+          <AntDesign name="delete" size={20} color="#ef4444" className="p-[2px]" />
         </TouchableOpacity>
       </View>
+
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  todo: {
-    backgroundColor: '#000',
-    paddingVertical: 24,
-    paddingHorizontal: 32, // Adjusted from rem
-    borderRadius: 5,
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  text: {
-    color: '#fff',
-    fontSize: 16,
-    flex: 1,
-  },
-  icons: {
-    flexDirection: 'row',
-    gap: 16,
-    marginLeft: 16,
-  },
-  icon: {
-    padding: 2,
-  },
-});
-
+// O StyleSheet foi completamente removido!
 export default Task;

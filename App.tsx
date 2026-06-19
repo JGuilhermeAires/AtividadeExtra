@@ -1,12 +1,32 @@
+// @ts-ignore
+import React from 'react';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Platform, StatusBar as RNStatusBar, Image, Pressable, ActivityIndicator, Modal, Button } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Platform, StatusBar as RNStatusBar, Image, Pressable, ActivityIndicator, Modal, Button as RNButton } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import Checkbox from 'expo-checkbox';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 import TaskList from './src/components/TaskList';
-import { addTask, deleteTask, getAllTasks, updateTask, TaskItem } from './src/utils/handle-api';
-import { globalStyles } from './src/styles/global';
 import AboutScreen from './src/components/AboutScreen';
+import { globalStyles } from './src/styles/global';
+import { addTask, deleteTask, getAllTasks, updateTask, TaskItem } from './src/utils/handle-api';
+
+// Forçando o TypeScript a ignorar a verificação de caminhos locais do Gluestack
+// @ts-ignore
+import { Input, InputField } from './components/ui/input';
+// @ts-ignore
+import { Button, ButtonText } from './components/ui/button';
+// @ts-ignore
+import { GluestackUIProvider } from './components/ui/gluestack-ui-provider';
+import './global.css';
+
+declare global {
+  namespace React {
+    interface Attributes {
+      className?: string;
+    }
+  }
+}
 
 // TODO (Zustand): Importe o seu useTaskStore aqui
 
@@ -68,204 +88,208 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          {logoError ? (
-            <Text style={styles.header}>Gerenciador de Tarefas</Text>
-          ) : (
-            <Image 
-              source={require('./assets/task-app-banner.png')} 
-              style={styles.logo} 
-              onError={() => setLogoError(true)}
-            />
+    <GluestackUIProvider mode="light">
+      <SafeAreaView className="flex-1 bg-gray-100" style={{ paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 }}>
+        <View className="flex-1 max-w-[600px] w-full self-center px-4">
+          
+          <View style={styles.headerContainer}>
+            {logoError ? (
+              <Text style={styles.header}>Gerenciador de Tarefas</Text>
+            ) : (
+              <Image 
+                source={require('./assets/task-app-banner.png')} 
+                style={styles.logo} 
+                onError={() => setLogoError(true)}
+              />
+            )}
+            {!logoError && <Text style={styles.header}>Tarefas</Text>}
+          </View>
+
+          <View style={styles.counterContainer}>
+            <Text style={styles.counterText}>Total de Tarefas: {tasks.length}</Text>
+          </View>
+
+          <View style={styles.filterContainer}>
+            <TouchableOpacity 
+              style={[styles.filterButton, filter === 'all' ? styles.filterButtonActive : styles.filterButtonInactive]} 
+              onPress={() => setFilter('all')}
+            >
+              <Text style={filter === 'all' ? styles.filterTextActive : styles.filterTextInactive}>Todas</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterButton, filter === 'completed' ? styles.filterButtonActive : styles.filterButtonInactive]} 
+              onPress={() => setFilter('completed')}
+            >
+              <Text style={filter === 'completed' ? styles.filterTextActive : styles.filterTextInactive}>Concluídas</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterButton, filter === 'pending' ? styles.filterButtonActive : styles.filterButtonInactive]} 
+              onPress={() => setFilter('pending')}
+            >
+              <Text style={filter === 'pending' ? styles.filterTextActive : styles.filterTextInactive}>Pendentes</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.actionButtonsContainer}>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.actionButton,
+                styles.actionButtonAdd,
+                pressed && styles.actionButtonAddPressed
+              ]}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={styles.actionButtonText}>Nova Tarefa</Text>
+            </Pressable>
+
+            <Pressable 
+              style={({ pressed }) => [
+                styles.actionButton,
+                styles.deleteButton,
+                pressed && styles.deleteButtonPressed
+              ]}
+              onPress={() => setTasks([])} 
+            >
+              <Text style={styles.actionButtonText}>Excluir todas</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.aboutButtonContainer}>
+            <RNButton title="Sobre o App" onPress={() => setAboutModalVisible(true)} />
+          </View>
+
+          <TaskList 
+            tasks={tasks.filter(t => {
+              if (filter === 'completed') return t.completed;
+              if (filter === 'pending') return !t.completed;
+              return true;
+            })} 
+            onUpdate={updateMode} 
+            onDelete={(id) => deleteTask(id, setTasks)} 
+          />
+
+          {loading && (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#000" />
+            </View>
           )}
-          {!logoError && <Text style={styles.header}>Tarefas</Text>}
         </View>
 
-        <View style={styles.counterContainer}>
-          <Text style={styles.counterText}>Total de Tarefas: {tasks.length}</Text>
-        </View>
-
-        <View style={styles.filterContainer}>
-          <TouchableOpacity 
-            style={[styles.filterButton, filter === 'all' ? styles.filterButtonActive : styles.filterButtonInactive]} 
-            onPress={() => setFilter('all')}
-          >
-            <Text style={filter === 'all' ? styles.filterTextActive : styles.filterTextInactive}>Todas</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterButton, filter === 'completed' ? styles.filterButtonActive : styles.filterButtonInactive]} 
-            onPress={() => setFilter('completed')}
-          >
-            <Text style={filter === 'completed' ? styles.filterTextActive : styles.filterTextInactive}>Concluídas</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterButton, filter === 'pending' ? styles.filterButtonActive : styles.filterButtonInactive]} 
-            onPress={() => setFilter('pending')}
-          >
-            <Text style={filter === 'pending' ? styles.filterTextActive : styles.filterTextInactive}>Pendentes</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.actionButtonsContainer}>
-          <Pressable 
-            style={({ pressed }) => [
-              styles.actionButton,
-              styles.actionButtonAdd,
-              pressed && styles.actionButtonAddPressed
-            ]}
-            onPress={() => setModalVisible(true)}
-          >
-            <Text style={styles.actionButtonText}>Nova Tarefa</Text>
-          </Pressable>
-
-          <Pressable 
-            style={({ pressed }) => [
-              styles.actionButton,
-              styles.deleteButton,
-              pressed && styles.deleteButtonPressed
-            ]}
-            // TODO (Zustand): Chame a action de deletar todas as tarefas da sua store
-            onPress={() => setTasks([])} 
-          >
-            <Text style={styles.actionButtonText}>Excluir todas</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.aboutButtonContainer}>
-          <Button title="Sobre o App" onPress={() => setAboutModalVisible(true)} />
-        </View>
-
-        {/* TODO (Zustand): Remova as props tasks, onUpdate e onDelete após refatorar o TaskList */}
-        <TaskList 
-          tasks={tasks.filter(t => {
-            if (filter === 'completed') return t.completed;
-            if (filter === 'pending') return !t.completed;
-            return true;
-          })} 
-          onUpdate={updateMode} 
-          onDelete={(id) => deleteTask(id, setTasks)} 
-        />
-
-        {loading && (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#000" />
-          </View>
-        )}
-      </View>
-
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={resetForm}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{isUpdating ? "Editar Tarefa" : "Nova Tarefa"}</Text>
-            
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Nome da tarefa..."
-              value={text}
-              maxLength={50}
-              onChangeText={setText}
-            />
-
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Data limite:</Text>
-              {Platform.OS === 'web' ? (
-                // @ts-ignore
-                <input 
-                  type="date"
-                  value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
-                  onChange={(e: any) => {
-                    const val = e.target.value;
-                    if (val) {
-                      const parts = val.split('-');
-                      setDueDate(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
-                    } else {
-                      setDueDate(null);
-                    }
-                  }}
-                  style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', flex: 1, marginLeft: 16 }}
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={resetForm}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{isUpdating ? "Editar Tarefa" : "Nova Tarefa"}</Text>
+              
+              <Input variant="outline" size="md" className="mb-4">
+                <InputField
+                  placeholder="Nome da tarefa..."
+                  value={text}
+                  maxLength={50}
+                  onChangeText={setText}
                 />
-              ) : (
-                <View style={{ flex: 1, marginLeft: 16, alignItems: 'flex-start' }}>
-                  <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerBtn}>
-                    <Text>{dueDate ? dueDate.toLocaleDateString() : "Selecionar Data"}</Text>
-                  </TouchableOpacity>
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={dueDate || new Date()}
-                      mode="date"
-                      display="default"
-                      onChange={onChangeDate}
-                    />
-                  )}
-                </View>
-              )}
-            </View>
+              </Input>
 
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Concluída:</Text>
-              <View style={styles.checkboxContainer}>
-                <Checkbox
-                  value={completed}
-                  onValueChange={setCompleted}
-                  color={completed ? '#000' : undefined}
-                />
-              </View>
-            </View>
-
-            <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Prioridade:</Text>
-              <View style={styles.priorityContainer}>
-                {['Baixa', 'Média', 'Alta'].map((p) => (
-                  <TouchableOpacity 
-                    key={p} 
-                    style={[
-                      styles.priorityButton, 
-                      priority === p && { 
-                        backgroundColor: p === 'Baixa' ? '#4caf50' : p === 'Média' ? '#ff9800' : '#f44336',
-                        borderColor: p === 'Baixa' ? '#4caf50' : p === 'Média' ? '#ff9800' : '#f44336'
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Data limite:</Text>
+                {Platform.OS === 'web' ? (
+                  <input 
+                    type="date"
+                    value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
+                    onChange={(e: any) => {
+                      const val = e.target.value;
+                      if (val) {
+                        const parts = val.split('-');
+                        setDueDate(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+                      } else {
+                        setDueDate(null);
                       }
-                    ]}
-                    onPress={() => setPriority(p as any)}
-                  >
-                    <Text style={[styles.priorityText, priority === p && styles.priorityTextActive]}>{p}</Text>
-                  </TouchableOpacity>
-                ))}
+                    }}
+                    style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', flex: 1, marginLeft: 16 }}
+                  />
+                ) : (
+                  <View style={{ flex: 1, marginLeft: 16, alignItems: 'flex-start' }}>
+                    <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerBtn}>
+                      <Text>{dueDate ? dueDate.toLocaleDateString() : "Selecionar Data"}</Text>
+                    </TouchableOpacity>
+                    {showDatePicker && (
+                      <DateTimePicker
+                        value={dueDate || new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={onChangeDate}
+                      />
+                    )}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Concluída:</Text>
+                <View style={styles.checkboxContainer}>
+                  <Checkbox
+                    value={completed}
+                    onValueChange={setCompleted}
+                    color={completed ? '#000' : undefined}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Prioridade:</Text>
+                <View style={styles.priorityContainer}>
+                  {['Baixa', 'Média', 'Alta'].map((p) => (
+                    <TouchableOpacity 
+                      key={p} 
+                      style={[
+                        styles.priorityButton, 
+                        priority === p && { 
+                          backgroundColor: p === 'Baixa' ? '#4caf50' : p === 'Média' ? '#ff9800' : '#f44336',
+                          borderColor: p === 'Baixa' ? '#4caf50' : p === 'Média' ? '#ff9800' : '#f44336'
+                        }
+                      ]}
+                      onPress={() => setPriority(p as any)}
+                    >
+                      <Text style={[styles.priorityText, priority === p && styles.priorityTextActive]}>{p}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.modalCancelBtn} onPress={resetForm}>
+                  <Text style={styles.modalCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <Button
+                  size="md"
+                  variant="solid"
+                  action="primary"
+                  isDisabled={!text.trim()}
+                  onPress={handleSave}
+                  className={!text.trim() ? "bg-gray-300" : "bg-black"}
+                >
+                  <ButtonText>Salvar</ButtonText>
+                </Button>
               </View>
             </View>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={resetForm}>
-                <Text style={styles.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalSaveBtn, !text.trim() && styles.modalSaveBtnDisabled]} 
-                onPress={handleSave}
-                disabled={!text.trim()}
-              >
-                <Text style={styles.modalSaveText}>Salvar</Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <Modal
-        visible={aboutModalVisible}
-        animationType="slide"
-        onRequestClose={() => setAboutModalVisible(false)}
-      >
-        <AboutScreen onClose={() => setAboutModalVisible(false)} />
-      </Modal>
+        <Modal
+          visible={aboutModalVisible}
+          animationType="slide"
+          onRequestClose={() => setAboutModalVisible(false)}
+        >
+          <AboutScreen onClose={() => setAboutModalVisible(false)} />
+        </Modal>
 
-      <StatusBar style="auto" />
-    </SafeAreaView>
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    </GluestackUIProvider>
   );
 }
 
@@ -496,4 +520,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  
 });
